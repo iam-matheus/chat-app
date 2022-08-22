@@ -25,6 +25,13 @@ When you refresh or close the web page, the socket fires the disconnect event sh
 
 socketIO.on("connection", (socket) => {
   console.log(`⚡: ${socket.id} user just connected!`);
+
+  //listens to the messages from the event in the react app and
+  //sends the message to all the users on the server
+  socket.on("message", (data) => {
+    socketIO.emit("messageResponse", data);
+  });
+
   socket.on("disconnect", () => {
     console.log("🔥: A user disconnected");
   });
