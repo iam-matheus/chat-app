@@ -9,9 +9,9 @@ const cors = require("cors");
 app.use(cors()); //instantiating the cors library
 
 //following, import socket.io to create a real time connection.
-const socketIO = require("socket.io")(http, {
+let socketIO = require("socket.io")(http, {
   cors: {
-    origin: "http://localhost/3000",
+    origin: "http://localhost:3000",
   },
 });
 
@@ -37,13 +37,12 @@ socketIO.on("connection", (socket) => {
   });
 });
 
-//this code currently returns a json object when /api is requested
+// create a GET route
 app.get("/api", (req, res) => {
-  res.json({
-    message: "Hello world",
-  });
+  console.log("printing from the server");
+  res.send({ express: "YOUR EXPRESS BACKEND IS CONNECTED TO REACT" });
 });
 
-app.listen(PORT, () => {
+http.listen(PORT, () => {
   console.log(`Listening to port: ${PORT}`);
 });
