@@ -6,8 +6,6 @@ const PORT = 4000;
 const http = require("http").Server(app);
 const cors = require("cors");
 
-app.use(cors()); //instantiating the cors library
-
 //following, import socket.io to create a real time connection.
 let socketIO = require("socket.io")(http, {
   cors: {
@@ -15,6 +13,8 @@ let socketIO = require("socket.io")(http, {
   },
 });
 
+app.use(cors()); //instantiating the cors library
+let users = [];
 /*
 From the code snippet below, the socket.io("connection") function
 establishes a connection with the React app, then creates a unique ID for
@@ -26,15 +26,41 @@ When you refresh or close the web page, the socket fires the disconnect event sh
 socketIO.on("connection", (socket) => {
   console.log(`⚡: ${socket.id} user just connected!`);
 
+  //Listens when a new user joins the server
+  socket.on("newUser", (data) => {
+    //Adds the new user to the list of users
+    users.push(data);
+    // console.log(users);
+    //Sends the list of users to the client
+    socketIO.emit("newUserResponse", users);
+  });
+
   //listens to the messages from the event in the react app and
   //sends the message to all the users on the server
   socket.on("message", (data) => {
     socketIO.emit("messageResponse", data);
   });
 
+  socket.on("typing", (data) => socket.broadcast.emit("typingResponse", data));
+
   socket.on("disconnect", () => {
-    console.log("🔥: A user disconnected");
+    console.log(`🔥: A user @ ${socket.id} disconnected`);
+
+    //updates the array of users when one leaves
+    users = users.filter((user) => user.socketID !== socket.id);
+    //updates the client
+    socketIO.emit("newUserResponse", users);
+    socket.disconnect();
   });
+
+  /**
+   * socket.on("newUser") is triggered when a new user joins the chat application. 
+   * The user's details (socket ID and username) are saved into the users array and sent 
+   * back to the React app in a new event named newUserResponse.
+   * 
+    In socket.io("disconnect"), the users array is updated when a user leaves the chat application, 
+    and the newUserReponse event is triggered to send the updated the list of users to the client.
+   */
 });
 
 // create a GET route
